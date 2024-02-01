@@ -107,14 +107,14 @@ const CreateGuest = ({ createGuest })=> {
 };
 
 function App() {
-  const BASE_URL = 'https://fsa-crud-2aa9294fe819.herokuapp.com/api/2309_ftb_et_web_am/guests';
+  //const BASE_URL = 'https://fsa-crud-2aa9294fe819.herokuapp.com/api/2309_ftb_et_web_am/guests';
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
   const [guests, setGuests] = React.useState([]);
  
   const destroyGuest = async(guest)=> {
-    await fetch(`${BASE_URL}/${guest.id}`, {
+    await fetch(`/api/guests/${guest.id}`, {
       method: 'DELETE'
     });
     const id = guest.id;
@@ -125,7 +125,7 @@ function App() {
   };
 
   const createGuest = async(guest)=> {
-    const response = await fetch(BASE_URL, {
+    const response = await fetch('/api/guests', {
       method: 'POST',
       body: JSON.stringify(guest),
       headers: {
@@ -141,7 +141,7 @@ function App() {
   
   React.useEffect(()=> {
     const fetchData = async()=> {
-      const response = await fetch(BASE_URL);
+      const response = await fetch('/api/guests');
       const json = await response.json();
       setGuests(json.data);
     };
