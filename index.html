@@ -73,19 +73,25 @@ const CreateGuest = ({ createGuest })=> {
   const [name, setName ] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
+  const [error, setError] = React.useState('');
 
-  const submit = (ev)=> {
+  const submit = async(ev)=> {
     ev.preventDefault();
-    createGuest({
-      name,
-      phone,
-      email
-    });
-
+    try {
+      await createGuest({
+        name,
+        phone,
+        email
+      });
+    }
+    catch(ex){
+      setError('There was an error');
+    }
   };
 
   return (
     <form onSubmit={ submit }>
+      { error }
       <input
         placeholder='name'
         value={ name }
@@ -132,10 +138,15 @@ function App() {
         'Content-Type': 'application/json'
       }
     });
-    const json = await response.json();
-    guest = json.data;
-    setGuests([...guests, guest]);
-    navigate(`/guests/${guest.id}`);
+    if(response.ok){
+      const json = await response.json();
+      guest = json.data;
+      setGuests([...guests, guest]);
+      navigate(`/guests/${guest.id}`);
+    }
+    else {
+      throw 'an error';
+    }
 
   }
   
