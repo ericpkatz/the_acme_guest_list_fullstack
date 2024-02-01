@@ -1,0 +1,202 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>The Acme Guest List CRD</title>
+    <link rel='stylesheet' href='styles.css' />
+  </head>
+<body>
+  <div id="root"></div>
+</body>
+<!-- This setup is not suitable for production. -->
+<!-- Only use it in development! -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react?dev",
+    "react-dom/client": "https://esm.sh/react-dom/client?dev",
+    "react-router-dom": "https://esm.sh/react-router-dom?dev"
+  }
+}
+</script>
+<script type="text/babel" data-type="module">
+import React from 'react';
+import {
+  Routes,
+  Route,
+  HashRouter,
+  Link,
+  useLocation,
+  useParams,
+  useNavigate
+} from 'react-router-dom';
+import { createRoot } from 'react-dom/client';
+
+const Home = ()=> <hr />;
+
+const GuestDetail = ({ guests })=> {
+  const params = useParams();
+  const id = params.id*1;
+  const guest = guests.find(guest => guest.id === id);
+  if(!guest){
+    return null;
+  }
+  return (
+    <div>
+      <h2>{ guest.name }</h2>
+      <Link to='/guests'>Back to guests</Link>
+    </div>
+  );
+};
+const Guests = ({ guests, destroyGuest })=> {
+  return (
+    <ul>
+      {
+        guests.map( guest => {
+          return (
+            <li key={ guest.id }>
+              <Link to={`/guests/${guest.id}`}>
+              { guest.name }
+              </Link>
+              <button onClick={()=> destroyGuest(guest)}>x</button>
+            </li>
+          );
+        })
+      }
+    </ul>
+  );
+};
+
+const CreateGuest = ({ createGuest })=> {
+  const [name, setName ] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+
+  const submit = (ev)=> {
+    ev.preventDefault();
+    createGuest({
+      name,
+      phone,
+      email
+    });
+
+  };
+
+  return (
+    <form onSubmit={ submit }>
+      <input
+        placeholder='name'
+        value={ name }
+        onChange={ (ev)=> setName(ev.target.value ) }
+      />
+      <input
+        placeholder='email'
+        value={ email }
+        onChange={ (ev)=> setEmail(ev.target.value ) }
+      />
+      <input
+        placeholder='phone'
+        value={ phone }
+        onChange={ (ev)=> setPhone(ev.target.value ) }
+      />
+      <button>Create</button>
+    </form>
+  );
+};
+
+function App() {
+  const BASE_URL = 'https://fsa-crud-2aa9294fe819.herokuapp.com/api/2309_ftb_et_web_am/guests';
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const [guests, setGuests] = React.useState([]);
+ 
+  const destroyGuest = async(guest)=> {
+    await fetch(`${BASE_URL}/${guest.id}`, {
+      method: 'DELETE'
+    });
+    const id = guest.id;
+    const filtered = guests.filter((guest)=> {
+      return guest.id !== id;
+    });
+    setGuests(filtered);
+  };
+
+  const createGuest = async(guest)=> {
+    const response = await fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify(guest),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const json = await response.json();
+    guest = json.data;
+    setGuests([...guests, guest]);
+    navigate(`/guests/${guest.id}`);
+
+  }
+  
+  React.useEffect(()=> {
+    const fetchData = async()=> {
+      const response = await fetch(BASE_URL);
+      const json = await response.json();
+      setGuests(json.data);
+    };
+    fetchData();
+  }, []);
+  
+  return (
+    <div>
+      <h1>The Acme Guests CRD { guests.length }</h1>
+      <nav>
+        <Link
+          className={ pathname === '/' ? 'selected': ''}
+          to='/'>
+            Home
+        </Link>
+        <Link
+          className={ pathname.startsWith('/guests') ? 'selected': ''}
+          to='/guests'>
+            Guests
+        </Link>
+        <Link
+          className={ pathname === '/createGuest' ? 'selected': ''}
+          to='/createGuest'>
+            Create Guest
+        </Link>
+      </nav>
+      <Routes>
+        <Route
+          path='/guests'
+          element={ <Guests guests={ guests } destroyGuest={ destroyGuest }/> }
+      />
+        <Route
+          path='/createGuest'
+          element = {
+            <CreateGuest createGuest={ createGuest }/>
+          }
+        />
+        <Route path='/' element={ <Home />} />
+        <Route
+          path='/guests/:id'
+          element = {
+            <GuestDetail guests={ guests }/>
+          }
+        />
+      </Routes>
+
+    </div>
+  );
+}
+
+const root = createRoot(document.getElementById('root'));
+root.render(
+  <HashRouter>
+    <App />
+  </HashRouter>
+);
+</script>
+</html>

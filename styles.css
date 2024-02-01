@@ -1,0 +1,29 @@
+body {
+  font-family: verdana;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  border: solid 1px dodgerBlue;
+}
+
+form > * {
+  margin: 0.5rem;
+}
+
+nav {
+  display: flex;
+  background-color: dodgerBlue;
+  padding: 0.5rem;
+  justify-content: space-around;
+}
+
+nav a {
+  color: cornSilk;
+  padding: 0.5rem;
+}
+
+nav a.selected {
+  border: solid 1px cornSilk;
+}
